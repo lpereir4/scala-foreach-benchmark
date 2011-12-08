@@ -7,6 +7,9 @@ object MyBuild extends Build {
     name := "scala-benchmarking-template",
     version := "1.0.0-SNAPSHOT",
     scalaVersion := "2.9.1",
+    //scalacOptions := Seq("-deprecation"),
+    scalacOptions := Seq("-deprecation", "-optimise"),
+    scalaHome := Some(file("/home/dcs/github/scala/dists/latest")),
     libraryDependencies ++= Seq(
         "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
         "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT",

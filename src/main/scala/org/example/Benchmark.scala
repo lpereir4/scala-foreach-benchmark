@@ -13,11 +13,11 @@ class Benchmark extends SimpleScalaBenchmark {
   @Param(Array("10", "100", "1000", "10000"))
   val length: Int = 0
   
-  var array: Array[Int] = _
+  //var array: Array[Int] = _
   
   override def setUp() {
     // set up all your benchmark data here
-    array = new Array(length)
+    //array = new Array(length)
   }
   
   // the actual code you'd like to test needs to live in one or more methods
@@ -29,7 +29,7 @@ class Benchmark extends SimpleScalaBenchmark {
     //////////////////// CODE SNIPPET ONE ////////////////////
     
     var result = 0    
-    array.foreach {
+    (0 to length).foreach {
       result += _
     }
     result // always have your snippet return a value that cannot easily be "optimized away"
@@ -42,8 +42,8 @@ class Benchmark extends SimpleScalaBenchmark {
     //////////////////// CODE SNIPPET TWO ////////////////////
     
     var result = 0
-    tfor(0)(_ < array.length, _ + 1) { i =>
-      result += array(i)
+    tfor(0)(_ < length, _ + 1) {
+      result += _
     }
     result
     
@@ -56,8 +56,8 @@ class Benchmark extends SimpleScalaBenchmark {
     
     var result = 0
     var i = 0
-    while (i < array.length) {
-      result += array(i)
+    while (i < length) {
+      result += i
       i = i + 1 
     }
     result
