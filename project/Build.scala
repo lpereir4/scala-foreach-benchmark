@@ -2,14 +2,31 @@ import sbt._
 import Keys._
 
 object MyBuild extends Build {
-  lazy val project = Project("root", file(".")) settings(
+  def benchProject(name: String, extraSettings: Seq[Setting[_]] = Seq.empty)(dir: String = name) =
+    Project(name, file(".")) settings(defaultSettings:_*) settings(extraSettings ++ scalaAt(name, dir): _*)
+
+  lazy val benchProjects = Seq(
+    benchProject("latest")(),
+    benchProject("latestOpt", optimise)("latest"),
+    benchProject("dcs5286")(),
+    benchProject("dcs5286Opt", optimise)("dcs5286")
+  )
+
+  override def projects = benchProjects
+
+  val distPath = "/home/dcs/github/scala/dists"
+  def scalaAt(projectName: String, dir: String): Seq[Setting[_]] = Seq(
+    scalaHome := Some(file(distPath) / dir),
+    target <<= (baseDirectory, name) apply (_ / projectName / _)
+  )
+
+  val optimise = scalacOptions += "-optimise"
+
+  val defaultSettings: Seq[Setting[_]] = Seq(
     organization := "com.example",
     name := "scala-benchmarking-template",
     version := "1.0.0-SNAPSHOT",
     scalaVersion := "2.9.1",
-    //scalacOptions := Seq("-deprecation"),
-    scalacOptions := Seq("-deprecation", "-optimise"),
-    scalaHome := Some(file("/home/dcs/github/scala/dists/latest")),
     libraryDependencies ++= Seq(
         "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
         "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT",
@@ -46,7 +63,8 @@ object MyBuild extends Build {
           // return the state, unmodified
           s
         }
-      }
+      } // f
       onLoad in Global ~= (f compose _)
-    })
+    } // onLoad
+  ) // defaultSettings
 }
