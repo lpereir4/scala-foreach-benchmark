@@ -2,27 +2,43 @@ import sbt._
 import Keys._
 
 object MyBuild extends Build {
-  def benchProject(name: String, extraSettings: Seq[Setting[_]] = Seq.empty)(dir: String = name) =
-    Project(name, file(".")) settings(defaultSettings:_*) settings(extraSettings ++ scalaAt(name, dir): _*)
+  val distPath = "/home/dcs/github/scala/dists" // Set this to your environment
 
-  lazy val benchProjects = Seq(
-    benchProject("latest")(),
-    benchProject("latestOpt", optimise)("latest"),
-    benchProject("dcs5286")(),
-    benchProject("dcs5286Opt", optimise)("dcs5286")
+  override def projects = root +: benchProjects
+
+  lazy val root = (
+    Project("root", file("."))
+    settings(aggregate in run := true,
+             parallelExecution := false, // I hate this, but run needs to be serial, so compile has to follow as well
+             sources in Compile := Nil,
+             run in Compile <<= inputTask { _ map { ignore => () } })
+    aggregate(benchProjects map Reference.projectToRef: _*)
   )
 
-  override def projects = benchProjects
-
-  val distPath = "/home/dcs/github/scala/dists"
-  def scalaAt(projectName: String, dir: String): Seq[Setting[_]] = Seq(
-    scalaHome := Some(file(distPath) / dir),
-    target <<= (baseDirectory, name) apply (_ / projectName / _)
+  // Just add all projects you want benchmarked here
+  lazy val benchProjects: Seq[Project] = (
+    normalAndOptimised("latest")
+    ++ normalAndOptimised("former")
+    ++ normalAndOptimised("paulp")
+    ++ normalAndOptimised("dcs5286")
+    ++ normalAndOptimised("dcsLast")
   )
+
+  def normalAndOptimised(dir: String) = Seq(
+    benchProject(dir, scalaAt(dir)),
+    benchProject(dir + "Opt", scalaAt(dir) ++ optimise)
+  )
+
+  def benchProject(name: String, extraSettings: Seq[Setting[_]] = Seq.empty) =
+    Project(name, file(".")) settings(myDefaultSettings:_*) settings(extraSettings ++ targetDir: _*)
+
+  def targetDir = Seq(target <<= (baseDirectory, thisProject, name) apply (_ / "target" / _.id / _))
+
+  def scalaAt(dir: String) = Seq(scalaHome := Some(file(distPath) / dir))
 
   val optimise = scalacOptions += "-optimise"
 
-  val defaultSettings: Seq[Setting[_]] = Seq(
+  val myDefaultSettings: Seq[Setting[_]] = Seq(
     organization := "com.example",
     name := "scala-benchmarking-template",
     version := "1.0.0-SNAPSHOT",
@@ -33,38 +49,41 @@ object MyBuild extends Build {
         "com.google.code.gson" % "gson" % "1.7.1"
     ),
     resolvers += "sonatypeSnapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
-    // enable forking in run
-    fork in run := true,
 
-    // custom kludge to get caliper to see the right classpath
+    parallelExecution := false, // I hate this, but run needs to be serial, so compile has to follow as well
 
-    // define the onLoad hook
-    onLoad in Global <<= (onLoad in Global) ?? identity[State],
-    {
-      // attribute key to prevent circular onLoad hook
-      val key = AttributeKey[Boolean]("loaded")
-      val f = (s: State) => {
-        val loaded: Boolean = s get key getOrElse false
-        if (!loaded) {
-          var cpString: String = ""
-          // get the runtime classpath
-          Project.evaluateTask(fullClasspath.in(Runtime), s) match {
-	    // make a colon-delimited string of the classpath
-            case Some(Value(cp)) => cpString = cp.files.mkString(":")
-	    // probably should handle an error here, but not sure you can
-	    //  ever get here with a working sbt
-            case _ => Nil
-            }
-          val extracted: Extracted = Project.extract(s)
-          // return a state with loaded = true and javaOptions set correctly
-          extracted.append(Seq(javaOptions in run ++= Seq("-cp", cpString)),
-			   s.put(key, true))
-        } else {
-          // return the state, unmodified
-          s
-        }
-      } // f
-      onLoad in Global ~= (f compose _)
-    } // onLoad
-  ) // defaultSettings
+    runner in Compile in run <<= (thisProject, taskTemporaryDirectory, scalaInstance, baseDirectory, javaOptions, outputStrategy, javaHome, connectInput) map {
+      (tp, tmp, si, base, options, strategy, javaHomeDir, connectIn) =>
+        new MyRunner(tp.id, ForkOptions(scalaJars = si.jars, javaHome = javaHomeDir, connectInput = connectIn, outputStrategy = strategy,
+          runJVMOptions = options, workingDirectory = Some(base)) )
+    }
+  )
 }
+
+class MyRunner(subproject: String, config: ForkScalaRun) extends sbt.ScalaRun {
+  def run(mainClass: String, classpath: Seq[File], options: Seq[String], log: Logger): Option[String] = {
+    log.info("Running " + subproject + " " + mainClass + " " + options.mkString(" "))
+                                                                                                  
+    val javaOptions = classpathOption(classpath) ::: mainClass :: options.toList                 
+    val strategy = config.outputStrategy getOrElse LoggedOutput(log)                              
+    val process =  Fork.java.fork(config.javaHome, 
+                                  config.runJVMOptions ++ javaOptions,
+                                  config.workingDirectory,
+                                  Map.empty,
+                                  config.connectInput,
+                                  strategy)
+    def cancel() = {                                                                              
+      log.warn("Run canceled.")                                                             
+      process.destroy()                                                                     
+      1                                                                                     
+    }                                                                                             
+    val exitCode = try process.exitValue() catch { case e: InterruptedException => cancel() }     
+    processExitCode(exitCode, "runner")                                                           
+  }                                                                                                     
+  private def classpathOption(classpath: Seq[File]) = "-classpath" :: Path.makeString(classpath) :: Nil 
+  private def processExitCode(exitCode: Int, label: String) = {                                                                                                     
+    if(exitCode == 0) None                                                                                  
+    else Some("Nonzero exit code returned from " + label + ": " + exitCode)                    
+  }                                                                                                     
+}   
+
