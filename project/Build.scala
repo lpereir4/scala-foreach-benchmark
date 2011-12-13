@@ -10,6 +10,7 @@ object MyBuild extends Build {
     Project("root", file("."))
     settings(aggregate in run := true,
              parallelExecution := false, // I hate this, but run needs to be serial, so compile has to follow as well
+             cancelable := true,
              sources in Compile := Nil,
              run in Compile <<= inputTask { _ map { ignore => () } })
     aggregate(benchProjects map Reference.projectToRef: _*)
@@ -49,6 +50,8 @@ object MyBuild extends Build {
         "com.google.code.gson" % "gson" % "1.7.1"
     ),
     resolvers += "sonatypeSnapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
+
+    cancelable := true,
 
     parallelExecution := false, // I hate this, but run needs to be serial, so compile has to follow as well
 
