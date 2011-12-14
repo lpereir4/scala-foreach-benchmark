@@ -73,6 +73,14 @@ class Benchmark extends SimpleScalaBenchmark {
     result
   }
   
+  def timeForeachReverse(reps: Int) = repeat(reps) {
+    var result = 0    
+    (0 to length reverse).foreach {
+      result += _
+    }
+    result
+  }
+  
   def timeWhileDec(reps: Int) = repeat(reps) {
     var result = 0
     var i = length
