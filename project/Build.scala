@@ -18,11 +18,11 @@ object MyBuild extends Build {
 
   // Just add all projects you want benchmarked here
   lazy val benchProjects: Seq[Project] = (
-    normalAndOptimised("latest")
-    ++ normalAndOptimised("former")
+    normalAndOptimised("former")
     ++ normalAndOptimised("paulp")
     ++ normalAndOptimised("dcs5286")
     ++ normalAndOptimised("dcsLast")
+    ++ normalAndOptimised("subrange")
   )
 
   def normalAndOptimised(dir: String) = Seq(
