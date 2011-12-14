@@ -13,11 +13,13 @@ class Benchmark extends SimpleScalaBenchmark {
   @Param(Array("10", "100", "1000", "10000"))
   val length: Int = 0
   
-  //var array: Array[Int] = _
+  var array: Array[Int] = _
+  var primes: Array[Boolean] = _
   
   override def setUp() {
     // set up all your benchmark data here
-    //array = new Array(length)
+    array = Array.range(0, length)
+    primes = Array.fill(length)(true)
   }
   
   // the actual code you'd like to test needs to live in one or more methods
@@ -25,35 +27,71 @@ class Benchmark extends SimpleScalaBenchmark {
   // the body of the method simply executes the code we wish to measure, 'reps' times
   // you can use the 'repeat' method from the SimpleScalaBenchmark trait to repeat with relatively low overhead
   // however, if your code snippet is very fast you might want to implement the reps loop directly with 'while'
-  def timeForeach(reps: Int) = repeat(reps) {
-    //////////////////// CODE SNIPPET ONE ////////////////////
-    
+  def timeForeachUnit(reps: Int) = repeat(reps) {
     var result = 0    
     (0 to length).foreach {
       result += _
     }
     result // always have your snippet return a value that cannot easily be "optimized away"
-    
-    //////////////////////////////////////////////////////////
   }
   
-  // a second benchmarking code snippet
-  def timeTFor(reps: Int) = repeat(reps) {
-    //////////////////// CODE SNIPPET TWO ////////////////////
-    
+  def timeWhileUnit(reps: Int) = repeat(reps) {
     var result = 0
-    tfor(0)(_ < length, _ + 1) {
+    var i = 0
+    while (i <= length) {
+      result += i
+      i = i + 1 
+    }
+    result
+  }
+
+  def timeForeachInt(reps: Int) = repeat(reps) {
+    var result = 0    
+    (0 to length).foreach { i =>
+      result += i
+      result
+    }
+    result
+  }
+  
+  def timeWhileInt(reps: Int) = repeat(reps) {
+    var result = 0
+    var i = 0
+    while (i <= length) {
+      result += i
+      i = i + 1 
+      result  // likely to be optimized away?
+    }
+    result
+  }
+
+  def timeForeachDec(reps: Int) = repeat(reps) {
+    var result = 0    
+    (length to 0 by -1).foreach {
       result += _
     }
     result
-    
-    //////////////////////////////////////////////////////////
   }
   
-  // and a third benchmarking code snippet
-  def timeWhile(reps: Int) = repeat(reps) {
-    //////////////////// CODE SNIPPET THREE ////////////////////
-    
+  def timeWhileDec(reps: Int) = repeat(reps) {
+    var result = 0
+    var i = length
+    while (i >= 0) {
+      result += i
+      i = i - 1 
+    }
+    result
+  }
+
+  def timeForeachOpen(reps: Int) = repeat(reps) {
+    var result = 0    
+    (0 until length).foreach {
+      result += _
+    }
+    result
+  }
+  
+  def timeWhileOpen(reps: Int) = repeat(reps) {
     var result = 0
     var i = 0
     while (i < length) {
@@ -61,21 +99,151 @@ class Benchmark extends SimpleScalaBenchmark {
       i = i + 1 
     }
     result
-    
-    //////////////////////////////////////////////////////////
   }
 
-  // this is a scala version of Javas "for" loop, we test it against the array.foreach and a plain "while" loop
-  @tailrec
-  final def tfor[@specialized T](i: T)(test: T => Boolean, inc: T => T)(f: T => Unit) {
-    if(test(i)) {
-      f(i)
-      tfor(inc(i))(test, inc)(f)
+  def timeForeachStep2(reps: Int) = repeat(reps) {
+    var result = 0    
+    (0 to length by 2).foreach {
+      result += _
     }
+    result
   }
   
+  def timeWhileStep2(reps: Int) = repeat(reps) {
+    var result = 0
+    var i = 0
+    while (i <= length) {
+      result += i
+      i = i + 2 
+    }
+    result
+  }
+
+  def timeForeachStepM2(reps: Int) = repeat(reps) {
+    var result = 0    
+    (length to 0 by -2).foreach {
+      result += _
+    }
+    result
+  }
+  
+  def timeWhileStepM2(reps: Int) = repeat(reps) {
+    var result = 0
+    var i = length
+    while (i >= 0) {
+      result += i
+      i = i - 2 
+    }
+    result
+  }
+
+  def timeForeachArray(reps: Int) = repeat(reps) {
+    var result = 0    
+    array.indices.foreach {
+      result += array(_)
+    }
+    result
+  }
+  
+  def timeWhileArray(reps: Int) = repeat(reps) {
+    var result = 0
+    var i = 0
+    while (i < array.length) {
+      result += array(i)
+      i = i + 1 
+    }
+    result
+  }
+
+  def timeForeachHeron(reps: Int) = repeat(reps) {
+    var result = 0.0
+    (1 to length).foreach { i =>
+      var estimate = i.toDouble
+      while (math.abs(i - estimate) > 0.001) {
+        estimate = (estimate + i / estimate) / 2
+      }
+      result += estimate
+    }
+    result
+  }
+
+  def timeWhileHeron(reps: Int) = repeat(reps) {
+    var result = 0.0
+    var i = 1
+    while(i <= length) {
+      var estimate = i.toDouble
+      while (math.abs(i - estimate) > 0.001) {
+        estimate = (estimate + i / estimate) / 2
+      }
+      result += estimate
+      i += 1
+    }
+    result
+  }
+
+  def timeForeachDumbPrime(reps: Int) = repeat(reps) {
+    var result = 0
+    (2 until primes.length).foreach { i =>
+      (2 until i).foreach { j =>
+        if (primes(j) && i % j == 0) primes(i) = false
+      }
+      if (primes(i)) result += 1
+    }
+    result
+  }
+
+  def timeWhileDumbPrime(reps: Int) = repeat(reps) {
+    var result = 0
+    var i = 2
+    while (i < primes.length) {
+      var j = 2
+      while (j < i) {
+        if (primes(j) && i % j == 0) primes(i) = false
+      }
+      if (primes(i)) result += 1
+    }
+    result
+  }
+
+  def timeForeachEratosthenes(reps: Int) = repeat(reps) {
+    var result = 0
+    (2 until primes.length).foreach { i =>
+      if (primes(i)) (2 until i).foreach { j =>
+        if (primes(j) && i % j == 0)
+          (i until primes.length by i).foreach { k =>
+            primes(k) = false
+          }
+      }
+      if (primes(i)) result += 1
+    }
+    result
+  }
+
+  def timeWhileEratosthenes(reps: Int) = repeat(reps) {
+    var result = 0
+    var i = 2
+    while (i < primes.length) {
+      if (primes(i)) {
+        var j = 2
+        while (j < i) {
+          if (primes(j) && i % j == 0) {
+            var k = i
+            while(k < primes.length) {
+              primes(k) = false
+              k += i
+            }
+          }
+        }
+      }
+      if (primes(i)) result += 1
+    }
+    result
+  }
+
   override def tearDown() {
     // clean up after yourself if required
+    array = null
+    primes = null
   }
   
 }
