@@ -32,6 +32,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (0 to length).foreach {
       result += _
     }
+    assert(result == (length + 1) * length / 2) // no messages, to avoid thunk creation
     result // always have your snippet return a value that cannot easily be "optimized away"
   }
   
@@ -42,6 +43,7 @@ class Benchmark extends SimpleScalaBenchmark {
       result += i
       i = i + 1 
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
 
@@ -51,6 +53,7 @@ class Benchmark extends SimpleScalaBenchmark {
       result += i
       result
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
   
@@ -62,6 +65,7 @@ class Benchmark extends SimpleScalaBenchmark {
       i = i + 1 
       result  // likely to be optimized away?
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
 
@@ -70,6 +74,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (length to 0 by -1).foreach {
       result += _
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
   
@@ -78,6 +83,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (0 to length reverse).foreach {
       result += _
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
   
@@ -88,6 +94,7 @@ class Benchmark extends SimpleScalaBenchmark {
       result += i
       i = i - 1 
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
 
@@ -96,6 +103,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (0 until length).foreach {
       result += _
     }
+    assert(result == (length - 1) * length / 2)
     result
   }
   
@@ -106,6 +114,7 @@ class Benchmark extends SimpleScalaBenchmark {
       result += i
       i = i + 1 
     }
+    assert(result == (length - 1) * length / 2)
     result
   }
 
@@ -114,6 +123,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (0 to length by 2).foreach {
       result += _
     }
+    assert(result == (length + 2) * length / 4)
     result
   }
   
@@ -124,6 +134,7 @@ class Benchmark extends SimpleScalaBenchmark {
       result += i
       i = i + 2 
     }
+    assert(result == (length + 2) * length / 4)
     result
   }
 
@@ -132,6 +143,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (length to 0 by -2).foreach {
       result += _
     }
+    assert(result == (length + 2) * length / 4)
     result
   }
   
@@ -142,6 +154,7 @@ class Benchmark extends SimpleScalaBenchmark {
       result += i
       i = i - 2 
     }
+    assert(result == (length + 2) * length / 4)
     result
   }
 
@@ -150,6 +163,7 @@ class Benchmark extends SimpleScalaBenchmark {
     array.indices.foreach {
       result += array(_)
     }
+    assert(result == (length - 1) * length / 2)
     result
   }
   
@@ -160,6 +174,7 @@ class Benchmark extends SimpleScalaBenchmark {
       result += array(i)
       i = i + 1 
     }
+    assert(result == (length - 1) * length / 2)
     result
   }
 
