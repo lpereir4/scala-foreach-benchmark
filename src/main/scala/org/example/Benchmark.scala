@@ -41,7 +41,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i <= length) {
       result += i
-      i = i + 1 
+      i += 1 
     }
     assert(result == (length + 1) * length / 2)
     result
@@ -62,7 +62,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i <= length) {
       result += i
-      i = i + 1 
+      i += 1 
       result  // likely to be optimized away?
     }
     assert(result == (length + 1) * length / 2)
@@ -92,7 +92,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = length
     while (i >= 0) {
       result += i
-      i = i - 1 
+      i -= 1 
     }
     assert(result == (length + 1) * length / 2)
     result
@@ -112,7 +112,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i < length) {
       result += i
-      i = i + 1 
+      i += 1 
     }
     assert(result == (length - 1) * length / 2)
     result
@@ -132,7 +132,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i <= length) {
       result += i
-      i = i + 2 
+      i += 2 
     }
     assert(result == (length + 2) * length / 4)
     result
@@ -152,7 +152,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = length
     while (i >= 0) {
       result += i
-      i = i - 2 
+      i -= 2 
     }
     assert(result == (length + 2) * length / 4)
     result
@@ -172,7 +172,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i < array.length) {
       result += array(i)
-      i = i + 1 
+      i += 1 
     }
     assert(result == (length - 1) * length / 2)
     result
