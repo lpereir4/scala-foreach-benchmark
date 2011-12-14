@@ -180,7 +180,7 @@ class Benchmark extends SimpleScalaBenchmark {
     }
     result
   }
-
+  // Too slow
   def timeForeachDumbPrime(reps: Int) = repeat(reps) {
     var result = 0
     (2 until primes.length).foreach { i =>
@@ -199,8 +199,10 @@ class Benchmark extends SimpleScalaBenchmark {
       var j = 2
       while (j < i) {
         if (primes(j) && i % j == 0) primes(i) = false
+        j += 1
       }
       if (primes(i)) result += 1
+      i += 1
     }
     result
   }
@@ -233,9 +235,11 @@ class Benchmark extends SimpleScalaBenchmark {
               k += i
             }
           }
+          j += 1
         }
       }
       if (primes(i)) result += 1
+      i += 1
     }
     result
   }
