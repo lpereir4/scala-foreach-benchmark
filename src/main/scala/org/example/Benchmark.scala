@@ -32,6 +32,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (0 to length).foreach {
       result += _
     }
+    assert(result == (length + 1) * length / 2) // no messages, to avoid thunk creation
     result // always have your snippet return a value that cannot easily be "optimized away"
   }
   
@@ -40,8 +41,9 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i <= length) {
       result += i
-      i = i + 1 
+      i += 1 
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
 
@@ -51,6 +53,7 @@ class Benchmark extends SimpleScalaBenchmark {
       result += i
       result
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
   
@@ -59,9 +62,10 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i <= length) {
       result += i
-      i = i + 1 
+      i += 1 
       result  // likely to be optimized away?
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
 
@@ -70,6 +74,16 @@ class Benchmark extends SimpleScalaBenchmark {
     (length to 0 by -1).foreach {
       result += _
     }
+    assert(result == (length + 1) * length / 2)
+    result
+  }
+  
+  def timeForeachReverse(reps: Int) = repeat(reps) {
+    var result = 0    
+    (0 to length reverse).foreach {
+      result += _
+    }
+    assert(result == (length + 1) * length / 2)
     result
   }
   
@@ -78,8 +92,9 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = length
     while (i >= 0) {
       result += i
-      i = i - 1 
+      i -= 1 
     }
+    assert(result == (length + 1) * length / 2)
     result
   }
 
@@ -88,6 +103,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (0 until length).foreach {
       result += _
     }
+    assert(result == (length - 1) * length / 2)
     result
   }
   
@@ -96,8 +112,9 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i < length) {
       result += i
-      i = i + 1 
+      i += 1 
     }
+    assert(result == (length - 1) * length / 2)
     result
   }
 
@@ -106,6 +123,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (0 to length by 2).foreach {
       result += _
     }
+    assert(result == (length + 2) * length / 4)
     result
   }
   
@@ -114,8 +132,9 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i <= length) {
       result += i
-      i = i + 2 
+      i += 2 
     }
+    assert(result == (length + 2) * length / 4)
     result
   }
 
@@ -124,6 +143,7 @@ class Benchmark extends SimpleScalaBenchmark {
     (length to 0 by -2).foreach {
       result += _
     }
+    assert(result == (length + 2) * length / 4)
     result
   }
   
@@ -132,8 +152,9 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = length
     while (i >= 0) {
       result += i
-      i = i - 2 
+      i -= 2 
     }
+    assert(result == (length + 2) * length / 4)
     result
   }
 
@@ -142,6 +163,7 @@ class Benchmark extends SimpleScalaBenchmark {
     array.indices.foreach {
       result += array(_)
     }
+    assert(result == (length - 1) * length / 2)
     result
   }
   
@@ -150,8 +172,9 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 0
     while (i < array.length) {
       result += array(i)
-      i = i + 1 
+      i += 1 
     }
+    assert(result == (length - 1) * length / 2)
     result
   }
 
@@ -159,7 +182,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var result = 0.0
     (1 to length).foreach { i =>
       var estimate = i.toDouble
-      while (math.abs(i - estimate) > 0.001) {
+      while (math.abs(i - estimate * estimate) > 0.01) {
         estimate = (estimate + i / estimate) / 2
       }
       result += estimate
@@ -172,7 +195,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 1
     while(i <= length) {
       var estimate = i.toDouble
-      while (math.abs(i - estimate) > 0.001) {
+      while (math.abs(i - estimate * estimate) > 0.01) {
         estimate = (estimate + i / estimate) / 2
       }
       result += estimate
