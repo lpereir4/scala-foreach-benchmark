@@ -182,7 +182,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var result = 0.0
     (1 to length).foreach { i =>
       var estimate = i.toDouble
-      while (math.abs(i - estimate * estimate) > 0.001) {
+      while (math.abs(i - estimate * estimate) > 0.01) {
         estimate = (estimate + i / estimate) / 2
       }
       result += estimate
@@ -195,7 +195,7 @@ class Benchmark extends SimpleScalaBenchmark {
     var i = 1
     while(i <= length) {
       var estimate = i.toDouble
-      while (math.abs(i - estimate * estimate) > 0.001) {
+      while (math.abs(i - estimate * estimate) > 0.01) {
         estimate = (estimate + i / estimate) / 2
       }
       result += estimate
