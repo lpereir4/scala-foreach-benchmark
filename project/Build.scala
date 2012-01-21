@@ -58,6 +58,7 @@ object MyBuild extends Build {
         "com.google.code.gson" % "gson" % "1.7.1"
     ),
     resolvers += "sonatypeSnapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
+    resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
 
     cancelable := true,
 
